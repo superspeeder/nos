@@ -30,3 +30,21 @@ void uart_pputint(uint16_t port, uint64_t i);
 
 void uart_putint_hex(uint64_t i);
 void uart_pputint_hex(uint16_t port, uint64_t i);
+
+void uart_putsvln(const char* pre, uint64_t i);
+void uart_putsvlnf(const char* fn, const char* pre, uint64_t i);
+void uart_putsvln_hex(const char* pre, uint64_t i);
+void uart_putsvlnf_hex(const char* fn, const char* pre, uint64_t i);
+
+void uart_putsvlnfs(const char* sfile, const char* fn, const char* pre, uint64_t i);
+void uart_putsvlnfs_hex(const char* sfile, const char* fn, const char* pre, uint64_t i);
+
+void uart_log(const char* fn, const char* s);
+void uart_logs(const char* sfile, const char* fn, const char* s);
+
+#define S_(n) #n
+#define S(n) S_(n)
+
+#define LOGVAL(name) uart_putsvlnfs(__FILE_NAME__ , __PRETTY_FUNCTION__, "():" S(__LINE__) "::" #name , (uint64_t)((name)))
+#define LOGVAL_HEX(name) uart_putsvlnfs_hex(__FILE_NAME__, __PRETTY_FUNCTION__, "():" S(__LINE__) "::" #name , (uint64_t)((name)))
+#define LOG(s) uart_logs(__FILE_NAME__, __PRETTY_FUNCTION__, ":" S(__LINE__) ": " s)

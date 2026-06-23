@@ -1,7 +1,8 @@
+#include "cpu/acpi.h"
 #include "cpu/paging.h"
 #include "drivers/uart.h"
-#include "kutil.h"
-#include "multiboot.h"
+#include "sys/kutil.h"
+#include "sys/multiboot.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -51,7 +52,7 @@ linked_list_node_t initpgtbl_lln[8] = {
         .value = &initialization_page_tables[6],
     },
     {
-        .next  = 0L,
+        .next  = nullptr,
         .prev  = &initpgtbl_lln[6],
         .value = &initialization_page_tables[7],
     },
@@ -62,7 +63,7 @@ linked_list_t initpgtbl_ll = {
 };
 
 void *alloc_page() {
-    linked_list_node_t *pgnode = llpop_front(&initpgtbl_ll);
+    const linked_list_node_t *pgnode = llpop_front(&initpgtbl_ll);
     return pgnode->value;
 }
 
@@ -75,24 +76,9 @@ page_alloc_t pgalloc = {
     .free  = free_page,
 };
 
-
-uint32_t          *framebuffer;
-mbi_fb_info_tag_t *fbi;
-
-void mbi_tag_acceptor(mbi_tag_header_t *tag) {
-    switch (tag->type) {
-    case 8: {
-        fbi         = (mbi_fb_info_tag_t *)tag;
-        framebuffer = (uint32_t *)fbi->framebuffer_addr;
-    } break;
-    default:
-        break;
-    }
-}
-
 void map_framebuffer() {
-    const size_t memsize = fbi->framebuffer_height * fbi->framebuffer_pitch;
-    pg_map_range_alloc((uint64_t)framebuffer, memsize, PT_PRESENT | PT_WRITABLE, &pgalloc);
+    const size_t memsize = mbi_info_results.fbi->framebuffer_height * mbi_info_results.fbi->framebuffer_pitch;
+    pg_map_range_alloc(mbi_info_results.fbi->framebuffer_addr, memsize, PT_PRESENT | PT_WRITABLE, &pgalloc);
 }
 
 
@@ -101,12 +87,36 @@ void kernel_main() {
     uart_init();
     uart_puts("Hello!\r\n");
 
-    parse_mbi(mbi_tag_acceptor);
+    process_mbi();
     map_framebuffer();
 
-    for (int i = 0; i < fbi->framebuffer_height; i++) {
-        for (int j = 0; j < fbi->framebuffer_width; j++) {
-            framebuffer[j + i * fbi->framebuffer_pitch / 4] = 0x0000ff | ((i * 255 / fbi->framebuffer_height) << 16) | ((j * 255 / fbi->framebuffer_width) << 8);
+    for (int i = 0; i < mbi_info_results.fbi->framebuffer_height; i++) {
+        for (int j = 0; j < mbi_info_results.fbi->framebuffer_width; j++) {
+            ((uint32_t *)mbi_info_results.fbi->framebuffer_addr)[j + i * mbi_info_results.fbi->framebuffer_pitch / 4] = 0x0000ff |
+                (i * 255 / mbi_info_results.fbi->framebuffer_height) << 16 | (j * 255 / mbi_info_results.fbi->framebuffer_width) << 8;
+        }
+    }
+
+    acpi_rsdp_t* rsdp = acpi_find_rsdp_table(&pgalloc);
+    if (rsdp) {
+        LOGVAL_HEX(rsdp);
+    } else {
+        LOG("Couldn't find RSDP table.");
+    }
+
+    if (acpi_validate_checksum(rsdp, sizeof(acpi_rsdp_t))) {
+        LOG("RSDP is valid.");
+    } else {
+        LOG("RSDP is invalid.");
+    }
+
+    if (rsdp->revision == 2) {
+        LOG("RSDP revision is 2. Verifying validity.");
+        acpi_xsdp_t* xsdp = (acpi_xsdp_t*)rsdp;
+        if (acpi_validate_checksum(xsdp, sizeof(acpi_xsdp_t))) {
+            LOG("XSDP is valid.");
+        } else {
+            LOG("XSDP is invalid.");
         }
     }
 

@@ -21,5 +21,6 @@ void                llpush_front(linked_list_t *ll, linked_list_node_t *node);
 void                llpush_back(linked_list_t *ll, linked_list_node_t *node);
 linked_list_node_t *llpop_front(linked_list_t *ll);
 linked_list_node_t *llpop_back(linked_list_t *ll);
+size_t              llist_len(linked_list_t *ll);
 
 void *memset(void *dst, int c, size_t n);

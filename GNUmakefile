@@ -8,7 +8,7 @@ C_HEADERS := $(shell find src/ -name *.h)
 C_OBJECTS := $(patsubst src/%.c,build/%.o,$(C_SOURCES))
 NASM_OBJECTS := $(patsubst src/%.nasm,build/%.nasm.o,$(NASM_SOURCES))
 
-QEMU_FLAGS := -m 8G -serial stdio
+QEMU_FLAGS := -m 8G -serial stdio -machine q35,accel=kvm:tcg
 CFLAGS := -ffreestanding -nostdlib -Isrc/ -std=gnu23 -mno-sse -mno-avx -msoft-float
 LDFLAGS := -nostdlib
 

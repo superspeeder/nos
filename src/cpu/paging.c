@@ -1,22 +1,5 @@
 #include "paging.h"
-#include "drivers/uart.h"
-#include "kutil.h"
-
-static void uart_putsvln(const char* pre, uint64_t i) {
-    uart_puts(pre);
-    uart_puts(": 0x");
-    uart_putint_hex(i);
-    uart_write('\n');
-}
-
-static void uart_putsvlnf(const char* fn, const char* pre, uint64_t i) {
-    uart_puts(fn);
-    uart_putsvln(pre, i);
-}
-
-#define STRF(m) m
-
-#define LOGVAL(name) uart_putsvlnf(__PRETTY_FUNCTION__, "()::" #name , (uint64_t)((name)))
+#include "sys/kutil.h"
 
 __attribute__((noreturn)) static void hcf() {
     asm volatile("cli");

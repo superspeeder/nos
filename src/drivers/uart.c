@@ -127,3 +127,49 @@ void uart_pputint_hex(uint16_t port, uint64_t i) {
     uint8_t dig = i & 0xF;
     uart_pwrite(port, dig > 0x9 ? 'A' + (dig - 0xA) : '0' + dig);
 }
+
+void uart_putsvln(const char* pre, uint64_t i) {
+    uart_puts(pre);
+    uart_puts(": ");
+    uart_putint(i);
+    uart_write('\n');
+}
+
+void uart_putsvlnf(const char* fn, const char* pre, uint64_t i) {
+    uart_puts(fn);
+    uart_putsvln(pre, i);
+}
+
+void uart_putsvln_hex(const char* pre, uint64_t i) {
+    uart_puts(pre);
+    uart_puts(": 0x");
+    uart_putint_hex(i);
+    uart_write('\n');
+}
+
+void uart_putsvlnf_hex(const char* fn, const char* pre, uint64_t i) {
+    uart_puts(fn);
+    uart_putsvln_hex(pre, i);
+}
+
+void uart_log(const char *fn, const char *s) {
+    uart_puts(fn);
+    uart_puts(s);
+    uart_write('\n');
+}
+
+void uart_putsvlnfs(const char *sfile, const char *fn, const char *pre, uint64_t i) {
+    uart_puts(sfile);
+    uart_write(':');
+    uart_putsvlnf(fn, pre, i);
+}
+void uart_putsvlnfs_hex(const char *sfile, const char *fn, const char *pre, uint64_t i) {
+    uart_puts(sfile);
+    uart_write(':');
+    uart_putsvlnf_hex(fn, pre, i);
+}
+void uart_logs(const char *sfile, const char *fn, const char *s) {
+    uart_puts(sfile);
+    uart_write(':');
+    uart_log(fn, s);
+}
