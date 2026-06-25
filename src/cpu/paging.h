@@ -108,4 +108,5 @@ typedef struct page_alloc {
 
 bool pg_map_alloc(uint64_t virtual_address, uint64_t physical_address, uint16_t page_flags, page_alloc_t *pgalloc);
 
-bool pg_map_range_alloc(uint64_t virtual_address_start, size_t size, uint16_t page_flags, page_alloc_t *pgalloc);
+bool pg_map_range_alloc(uint64_t virtual_address_start, uint64_t physical_address_start, size_t size, uint16_t page_flags, page_alloc_t *pgalloc);
+bool pg_map_range_alloc_ident(uint64_t virtual_address_start, size_t size, uint16_t page_flags, page_alloc_t *pgalloc);

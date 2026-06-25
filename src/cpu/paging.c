@@ -192,15 +192,19 @@ bool pg_map_alloc(uint64_t virtual_address, uint64_t physical_address, uint16_t 
     return true;
 }
 
-bool pg_map_range_alloc(const uint64_t virtual_address_start, const size_t size, const uint16_t page_flags, page_alloc_t *pgalloc) {
-    uint64_t aligned_addr = (uint64_t)ALIGN_MEMORY_ADDRESS_DOWN(virtual_address_start, PGSZ_L1);
-    uint64_t end_addr     = virtual_address_start + size;
-    uint64_t n            = 0;
-    for (uint64_t i = aligned_addr; i < end_addr; i += PGSZ_L1) {
-        if (!pg_map_alloc(i, i, PT_PRESENT | PT_WRITABLE, pgalloc)) {
+bool pg_map_range_alloc(const uint64_t virtual_address_start, const uint64_t physical_address_start, const size_t size, const uint16_t page_flags, page_alloc_t *pgalloc) {
+    uint64_t aligned_addr  = (uint64_t)ALIGN_MEMORY_ADDRESS_DOWN(virtual_address_start, PGSZ_L1);
+    uint64_t aligned_paddr = (uint64_t)ALIGN_MEMORY_ADDRESS_DOWN(physical_address_start, PGSZ_L1);
+    uint64_t n             = 0;
+    for (uint64_t i = 0; i < size; i += PGSZ_L1) {
+        if (!pg_map_alloc(aligned_addr + i, aligned_paddr + i, PT_PRESENT | PT_WRITABLE, pgalloc)) {
             return false;
         }
         n++;
     }
     return true;
+}
+
+bool pg_map_range_alloc_ident(const uint64_t virtual_address_start, const size_t size, const uint16_t page_flags, page_alloc_t *pgalloc) {
+    return pg_map_range_alloc(virtual_address_start, virtual_address_start, size, page_flags, pgalloc);
 }

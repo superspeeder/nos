@@ -128,6 +128,17 @@ void uart_pputint_hex(uint16_t port, uint64_t i) {
     uart_pwrite(port, dig > 0x9 ? 'A' + (dig - 0xA) : '0' + dig);
 }
 
+void uart_putint_hexpad(uint64_t i, uint64_t pad) {
+    uart_pputint_hexpad(uart_active_port, i, pad);
+}
+
+void uart_pputint_hexpad(uint16_t port, uint64_t i, uint64_t pad) {
+    for (uint64_t n = pad; n > 0; n--) {
+        uint8_t dig = (i >> ((n - 1) * 4)) & 0xF;
+        uart_pwrite(port, dig > 0x9 ? 'A' + (dig - 0xA) : '0' + dig);
+    }
+}
+
 void uart_putsvln(const char* pre, uint64_t i) {
     uart_puts(pre);
     uart_puts(": ");

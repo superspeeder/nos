@@ -78,7 +78,7 @@ page_alloc_t pgalloc = {
 
 void map_framebuffer() {
     const size_t memsize = mbi_info_results.fbi->framebuffer_height * mbi_info_results.fbi->framebuffer_pitch;
-    pg_map_range_alloc(mbi_info_results.fbi->framebuffer_addr, memsize, PT_PRESENT | PT_WRITABLE, &pgalloc);
+    pg_map_range_alloc_ident(mbi_info_results.fbi->framebuffer_addr, memsize, PT_PRESENT | PT_WRITABLE, &pgalloc);
 }
 
 
@@ -97,7 +97,7 @@ void kernel_main() {
         }
     }
 
-    acpi_rsdp_t* rsdp = acpi_find_rsdp_table(&pgalloc);
+    acpi_rsdp_t *rsdp = acpi_find_rsdp_table(&pgalloc);
     if (rsdp) {
         LOGVAL_HEX(rsdp);
     } else {
@@ -112,7 +112,7 @@ void kernel_main() {
 
     if (rsdp->revision == 2) {
         LOG("RSDP revision is 2. Verifying validity.");
-        acpi_xsdp_t* xsdp = (acpi_xsdp_t*)rsdp;
+        acpi_xsdp_t *xsdp = (acpi_xsdp_t *)rsdp;
         if (acpi_validate_checksum(xsdp, sizeof(acpi_xsdp_t))) {
             LOG("XSDP is valid.");
         } else {
@@ -120,22 +120,5 @@ void kernel_main() {
         }
     }
 
-    /*
-    parse_mbi();
-
-    write_num_hex_ser((uint64_t)framebuffer);
-    write_serial('\n');
-    write_num_dec((uint64_t)fbi->framebuffer_width);
-    write_serial('\t');
-    write_num_dec((uint64_t)fbi->framebuffer_height);
-    write_serial('\t');
-    write_num_dec((uint64_t)fbi->framebuffer_bpp);
-    write_serial('\n');
-
-    map_framebuffer();
-
-    // hcf();
-
-    */
     hcf();
 }

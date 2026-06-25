@@ -3,6 +3,8 @@
 #include <stdint.h>
 #define ALIGN_MEMORY_ADDRESS_UP(addr, alignment) ((void *)(((uint64_t)(addr) + ((uint64_t)(alignment) - 1ULL)) & (~((uint64_t)(alignment) - 1ULL))))
 #define ALIGN_MEMORY_ADDRESS_DOWN(addr, alignment) ((void *)((uint64_t)(addr) & ~((uint64_t)(alignment) - 1ULL)))
+#define ALIGN_UP(val, alignment) ((((uint64_t)(val) + ((uint64_t)(alignment) - 1ULL)) & (~((uint64_t)(alignment) - 1ULL))))
+#define ALIGN_DOWN(val, alignment) (((uint64_t)(val) & ~((uint64_t)(alignment) - 1ULL)))
 #define CHECK_FLAG(value, bit) (((value) & (bit)) == (bit))
 
 typedef struct linked_list_node {

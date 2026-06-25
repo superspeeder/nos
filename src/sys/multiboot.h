@@ -83,12 +83,20 @@ typedef struct __attribute__((packed)) mbi_elf_symbols_tag {
     uint8_t section_headers[]; // TODO: read about how to parse this data.
 } mbi_elf_symbols_tag_t;
 
+typedef struct __attribute__((packed)) mbi_memory_map_tag_entry {
+    uint64_t base_addr;
+    uint64_t length;
+    uint32_t type;
+    uint32_t reserved;
+} mbi_memory_map_tag_entry_t;
+
 typedef struct __attribute__((packed)) mbi_memory_map_tag {
     mbi_tag_header_t header;
     uint32_t entry_size;
     uint32_t entry_version;
     uint8_t entries[]; // Note: Parse this using mbi_parse_memory_map(tag, entry_acceptor) to ensure proper parsing.
 } mbi_memory_map_tag_t;
+
 
 typedef struct __attribute__((packed)) mbi_bootloader_name_tag {
     mbi_tag_header_t header;
@@ -209,3 +217,5 @@ void parse_mbi(void (*tag_acceptor)(mbi_tag_header_t *tag));
 
 // Function to process the mbi struct. This uses parse_mbi internally and outputs to mbi_info_results
 void process_mbi();
+
+void mbi_parse_memory_map(mbi_memory_map_tag_t* tag, void(*entry_acceptor)(mbi_memory_map_tag_entry_t* entry));

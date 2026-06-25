@@ -25,14 +25,14 @@ static bool _check_signature(uint8_t* p, const char sig[8]) {
 
 acpi_rsdp_t *acpi_find_rsdp_table(struct page_alloc* pgalloc) {
     uint8_t* ebda = (uint8_t*)(uint64_t)*(uint16_t *)EBDA_POINTER;
-    pg_map_range_alloc((uint64_t)ebda, EBDA_SIZE, PT_PRESENT | PT_WRITABLE, pgalloc);
+    pg_map_range_alloc_ident((uint64_t)ebda, EBDA_SIZE, PT_PRESENT | PT_WRITABLE, pgalloc);
     for (size_t i = 0 ; i < EBDA_SIZE ; ++i) {
         if (_check_signature(ebda + i, RSDP_SIG)) {
             return (acpi_rsdp_t*)(ebda + i);
         }
     }
 
-    pg_map_range_alloc(ACPITABLES_START, ACPITABLES_END - ACPITABLES_START, PT_PRESENT | PT_WRITABLE, pgalloc);
+    pg_map_range_alloc_ident(ACPITABLES_START, ACPITABLES_END - ACPITABLES_START, PT_PRESENT | PT_WRITABLE, pgalloc);
     uint8_t* acpi_tables = (uint8_t*)ACPITABLES_START;
     uint8_t* acpi_tables_end = (uint8_t*)ACPITABLES_END;
 
