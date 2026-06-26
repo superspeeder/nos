@@ -10,7 +10,7 @@
 #define LOWMEM_END 0xa0000
 #define EBDA_START 0x80000
 
-static struct regionmap_entry *_regionmap_page = nullptr;
+static struct regionmap_entry *_regionmap = nullptr;
 
 static inline uint64_t bsf64(uint64_t n) {
     uint64_t out = 0;
@@ -23,6 +23,11 @@ static inline uint32_t bsf32(uint64_t n) {
     asm volatile("bsf %0, %%eax" : "=a"(out) : "r"(n));
     return out;
 }
+
+///
+///
+///
+static inline uint64_t _find_contiguous_availability_bitmap(uint64_t bitmap, size_t required_contiguous_size) {}
 
 static uint32_t lowmem_bitmap[LOWMEM_END >> 17];
 
@@ -99,14 +104,14 @@ static void *_pmem_alloc_page_from_region(struct regionmap_entry *region) {
 }
 
 static void *_pmem_alloc_page_from_rmap() {
-    if (_regionmap_page == nullptr)
+    if (_regionmap == nullptr)
         return nullptr;
     for (size_t rbitmap_idx = 0; rbitmap_idx < RMAP_MAX_ENTRIES / 64; ++rbitmap_idx) {
         uint64_t rbent = rmap_rbitmap[rbitmap_idx];
         if (rbent == 0)
             continue;
         uint64_t                regidx = bsf64(rbent) + (rbitmap_idx << 6);
-        struct regionmap_entry *region = &_regionmap_page[regidx];
+        struct regionmap_entry *region = &_regionmap[regidx];
         void                   *page   = _pmem_alloc_page_from_region(region);
         if (region->available_count == 0) {
             rmap_rbitmap[rbitmap_idx] &= ~(1ULL << regidx); // mark that region is unavailable.
@@ -121,7 +126,7 @@ static void *_pmem_alloc_page_from_rmap() {
 static struct regionmap_entry *_pmem_find_region_containing(void *ptr) {
     const uint64_t addr = (uint64_t)ptr;
     for (size_t idx = 0; idx < num_regions; ++idx) {
-        struct regionmap_entry *region = &_regionmap_page[idx];
+        struct regionmap_entry *region = &_regionmap[idx];
         if (region->base_addr <= addr && region->base_addr + region->size > addr) {
             return region;
         }
@@ -170,7 +175,7 @@ void pmem_init_lowmem_bitmap_used() {
         _pmem_mark_lowmem_page_used(i);
     }
 
-    _regionmap_page = _pmem_get_lowmem_page();
+    _regionmap = _pmem_get_lowmem_page();
 }
 
 
