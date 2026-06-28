@@ -3,6 +3,7 @@
 #include "drivers/uart.h"
 #include "sys/kutil.h"
 #include "sys/multiboot.h"
+#include "sys/pmem.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -78,7 +79,8 @@ page_alloc_t pgalloc = {
 
 void map_framebuffer() {
     const size_t memsize = mbi_info_results.fbi->framebuffer_height * mbi_info_results.fbi->framebuffer_pitch;
-    pg_map_range_alloc_ident(mbi_info_results.fbi->framebuffer_addr, memsize, PT_PRESENT | PT_WRITABLE, &pgalloc);
+    LOGVAL_HEX(memsize);
+    pg_map_range_alloc_ident(mbi_info_results.fbi->framebuffer_addr, memsize, PT_PRESENT | PT_WRITABLE, &pmem_pgalloc);
 }
 
 
@@ -87,7 +89,10 @@ void kernel_main() {
     uart_init();
     uart_puts("Hello!\r\n");
 
+    pmem_init_lowmem_bitmap_used();
+
     process_mbi();
+
     map_framebuffer();
 
     for (int i = 0; i < mbi_info_results.fbi->framebuffer_height; i++) {
@@ -97,7 +102,7 @@ void kernel_main() {
         }
     }
 
-    acpi_rsdp_t *rsdp = acpi_find_rsdp_table(&pgalloc);
+    acpi_rsdp_t *rsdp = acpi_find_rsdp_table(&pmem_pgalloc);
     if (rsdp) {
         LOGVAL_HEX(rsdp);
     } else {
@@ -119,6 +124,25 @@ void kernel_main() {
             LOG("XSDP is invalid.");
         }
     }
+
+    uint64_t pmem_avl = pmem_get_total_available();
+    LOGVAL_HEX(pmem_avl);
+
+    void *test_pages = pmem_alloc_pages(262144);
+    LOGVAL_HEX(test_pages);
+    void *test_pages2 = pmem_alloc_pages(16);
+    LOGVAL_HEX(test_pages2);
+    void *test_pages3 = pmem_alloc_pages(16);
+    LOGVAL_HEX(test_pages3);
+    void *test_pages4 = pmem_alloc_pages(262144);
+    LOGVAL_HEX(test_pages4);
+    void *test_pages5 = pmem_alloc_pages(16);
+    LOGVAL_HEX(test_pages5);
+    pmem_free_pages(262144, test_pages4);
+    void *test_pages6 = pmem_alloc_pages(262144);
+    LOGVAL_HEX(test_pages6);
+    pmem_avl = pmem_get_total_available();
+    LOGVAL_HEX(pmem_avl);
 
     hcf();
 }

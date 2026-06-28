@@ -1,4 +1,6 @@
 #include "paging.h"
+
+#include "drivers/uart.h"
 #include "sys/kutil.h"
 
 __attribute__((noreturn)) static void hcf() {
@@ -193,6 +195,9 @@ bool pg_map_alloc(uint64_t virtual_address, uint64_t physical_address, uint16_t 
 }
 
 bool pg_map_range_alloc(const uint64_t virtual_address_start, const uint64_t physical_address_start, const size_t size, const uint16_t page_flags, page_alloc_t *pgalloc) {
+    LOGVAL_HEX(virtual_address_start);
+    LOGVAL_HEX(physical_address_start);
+    LOGVAL_HEX(size);
     uint64_t aligned_addr  = (uint64_t)ALIGN_MEMORY_ADDRESS_DOWN(virtual_address_start, PGSZ_L1);
     uint64_t aligned_paddr = (uint64_t)ALIGN_MEMORY_ADDRESS_DOWN(physical_address_start, PGSZ_L1);
     uint64_t n             = 0;

@@ -1,6 +1,7 @@
 #include "multiboot.h"
 #include "drivers/uart.h"
 #include "sys/kutil.h"
+#include "sys/pmem.h"
 
 extern void *mbi_data;
 
@@ -19,7 +20,7 @@ void parse_mbi(void (*tag_acceptor)(mbi_tag_header_t *tag)) {
 
 struct mbi_info_results mbi_info_results;
 
-const char* mm_typenames[6] = {
+const char *mm_typenames[6] = {
     "reserved",
     "usable",
     "reserved",
@@ -28,7 +29,7 @@ const char* mm_typenames[6] = {
     "defective",
 };
 
-static void mbi_log_mmentry(mbi_memory_map_tag_entry_t* entry) {
+static void mbi_log_mmentry(mbi_memory_map_tag_entry_t *entry) {
     uart_puts("base: 0x");
     uart_putint_hexpad(entry->base_addr, 16);
     uart_puts(" size: 0x");
@@ -40,10 +41,11 @@ static void mbi_log_mmentry(mbi_memory_map_tag_entry_t* entry) {
 
 uint64_t usable_memory_size = 0;
 
-static void mbi_mmap_entry_acceptor(mbi_memory_map_tag_entry_t* entry) {
+static void mbi_mmap_entry_acceptor(mbi_memory_map_tag_entry_t *entry) {
     mbi_log_mmentry(entry);
     if (entry->type == 1) {
         usable_memory_size += entry->length;
+        pmem_create_usable_region(entry->base_addr, entry->length);
     }
 }
 
@@ -55,7 +57,7 @@ static void mbi_tag_acceptor(mbi_tag_header_t *tag) {
     } break;
     case MBI_TAG_MEMORY_MAP: {
         uart_puts("Memory map entries:\n");
-        mbi_parse_memory_map((mbi_memory_map_tag_t*)tag, mbi_mmap_entry_acceptor);
+        mbi_parse_memory_map((mbi_memory_map_tag_t *)tag, mbi_mmap_entry_acceptor);
         LOGVAL_HEX(usable_memory_size);
     } break;
     default:

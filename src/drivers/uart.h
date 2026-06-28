@@ -51,3 +51,11 @@ void uart_logs(const char* sfile, const char* fn, const char* s);
 #define LOGVAL(name) uart_putsvlnfs(__FILE_NAME__ , __PRETTY_FUNCTION__, "():" S(__LINE__) "::" #name , (uint64_t)((name)))
 #define LOGVAL_HEX(name) uart_putsvlnfs_hex(__FILE_NAME__, __PRETTY_FUNCTION__, "():" S(__LINE__) "::" #name , (uint64_t)((name)))
 #define LOG(s) uart_logs(__FILE_NAME__, __PRETTY_FUNCTION__, "():" S(__LINE__) ": " s)
+
+#ifdef LOG_TRACE_ENTER_EXIT
+#define LOGENTER() LOG("Enter")
+#define LOGEXIT() LOG("Exit")
+#else
+#define LOGENTER()
+#define LOGEXIT()
+#endif
